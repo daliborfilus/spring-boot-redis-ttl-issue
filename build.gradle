@@ -1,0 +1,98 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.3.4.RELEASE' apply false
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE' apply false
+    id 'org.jetbrains.kotlin.jvm' version '1.4.10' apply false
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.4.10' apply false
+}
+
+allprojects {
+    group = 'org.example'
+    version = '0.0.1-SNAPSHOT'
+
+    repositories {
+        jcenter()
+    }
+}
+
+subprojects {
+    if (it.name == "app") {
+        apply plugin: 'java'
+    } else {
+        apply plugin: 'java-library'
+    }
+    apply plugin: 'io.spring.dependency-management'
+
+    apply plugin: "kotlin"
+    apply plugin: "kotlin-spring"
+
+    compileKotlin {
+        kotlinOptions {
+            freeCompilerArgs = ["-Xjsr305=strict"]
+            jvmTarget = "11"
+        }
+    }
+    compileTestKotlin {
+        kotlinOptions {
+            freeCompilerArgs = ["-Xjsr305=strict"]
+            jvmTarget = "11"
+        }
+    }
+
+    jar {
+        enabled = true
+    }
+
+    sourceCompatibility = 11
+    targetCompatibility = 11
+
+    dependencyManagement {
+        imports {
+            mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+        }
+    }
+
+    /*
+    Tomcat version (To use tomcat, comment 1) and comment out 3)):
+        - a) session TTL works in spring boot default mode, i.e. 2) is commented and 4) is commented
+        - b) session TTL works if 2) is uncommented and 4) is uncommented (replace jakarta.annotation with javax.annotation)
+        - c) app won't boot if 2) is uncommented and 4) is commented - you need to have at least jakarta.annotation OR javax.annotation present for it to work
+
+    Jetty version (To use jetty, uncomment 1) and uncomment 3):
+        - a) session TTL works if 2) is uncommented and 4) is uncommented (replace jakarta.annotation with javax.annotation)
+        - b) session TTL works if 2) is commented and 4) is uncommented ("add" javax.annotation dependency with excluding just tomcat)
+        - b) session TTL doesn't work if 2) is uncommented and 4) is commented (that means no jakarta.annotation nor javax.annotation present, but the app still boots and no errors are visible)
+
+    Basically: instead of the app crashing because of missing dependencies, it still works, but Redis TTL doesn't. I don't know what else doesn't work in this situation...
+     */
+
+    configurations {
+        // 1)
+        compile.exclude module: 'spring-boot-starter-tomcat'
+        // 2)
+        compile.exclude group: 'jakarta.annotation', module: 'jakarta.annotation-api'
+    }
+
+    dependencies {
+        implementation "org.jetbrains.kotlin:kotlin-reflect"
+        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+        implementation('org.springframework.boot:spring-boot-starter')
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+
+        // 3)
+        implementation 'org.springframework.boot:spring-boot-starter-jetty'
+        // 4)
+//        implementation group: 'javax.annotation', name: 'javax.annotation-api'
+
+        // redis
+        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+        implementation 'org.springframework.session:spring-session-data-redis'
+
+        // authentication with ldap stuff
+        implementation 'org.springframework.boot:spring-boot-starter-security'
+        implementation "org.springframework.security:spring-security-ldap"
+        implementation "org.springframework.ldap:spring-ldap-core"
+//        testImplementation 'org.springframework.security:spring-security-test'
+    }
+}

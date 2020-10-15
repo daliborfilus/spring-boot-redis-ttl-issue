@@ -1,0 +1,23 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'java'
+}
+
+dependencies {
+    implementation project(':lib')
+}
+
+bootRun {
+    // support passing -Dsystem.property=value to bootRun task
+    systemProperties = System.properties
+}
+
+// add generated documentation to jar file
+bootJar {
+    mainClassName = 'org.example.BackendApplicationKt'
+
+    manifest {
+        attributes('Implementation-Title':  'Example Backend Application',
+                   'Implementation-Version': getArchiveVersion())
+    }
+}

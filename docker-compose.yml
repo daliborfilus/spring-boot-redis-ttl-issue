@@ -1,0 +1,37 @@
+version: "3.6"
+
+# development
+services:
+  redis:
+    image: redis:5.0.5-alpine
+    volumes:
+      - redis_data:/data
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend-dev/Dockerfile
+      args:
+        # NOTE: be sure to have $UID available! e.g.
+        # export UID=$(id -u)
+        LOCAL_UID: $UID
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+      - ldapserver
+    volumes:
+      # the application
+      - $PWD:/opt/backend
+      - backend_gradle:/opt/backend/.gradle
+      # gradle cache
+      - gradle_gradle:/opt/.gradle
+  # OpenLDAP server
+  ldapserver:
+    build: docker/ldapserver
+
+volumes:
+  # /opt/backend/.gradle
+  backend_gradle:
+  # ~/.gradle
+  gradle_gradle:
+  redis_data:

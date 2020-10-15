@@ -1,0 +1,27 @@
+server:
+  servlet:
+    contextPath: /api
+    session:
+      cookie:
+        http-only: true
+        secure: true
+        max-age: 7200s
+
+logging:
+  level:
+    root: INFO
+    org.example: DEBUG
+
+spring:
+  profiles.active: test
+
+#  data:
+#    # disable spring data redis repository scanning
+#    redis.repositories.enabled: false
+
+  session:
+    # disable redis sessions for integration tests
+    store-type: none
+
+  jackson:
+    serialization.indent-output: true

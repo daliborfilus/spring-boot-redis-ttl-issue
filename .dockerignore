@@ -1,0 +1,7 @@
+.idea
+.git
+.gradle/
+build/
+out/
+**/build/
+**/out/
